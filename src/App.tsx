@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react';
 import { 
+  Routes, 
+  Route, 
+  Link, 
+  useLocation, 
+  useParams,
+  useNavigate
+} from 'react-router-dom';
+import { 
   Phone, 
   Mail, 
   MapPin, 
@@ -66,12 +74,12 @@ const SERVICES = [
 ];
 
 const PORTFOLIO = [
-  { id: 1, title: 'Modern Living Room', category: 'Rumah', img: 'https://placehold.co/800x600/1A1A1A/C9A84C?text=Modern+Living+Room' },
-  { id: 2, title: 'Minimalist Office', category: 'Kantor', img: 'https://placehold.co/800x600/1A1A1A/C9A84C?text=Minimalist+Office' },
-  { id: 3, title: 'Luxury Kitchen Set', category: 'Furniture', img: 'https://placehold.co/800x600/1A1A1A/C9A84C?text=Luxury+Kitchen+Set' },
-  { id: 4, title: 'Scandinavian Bedroom', category: 'Rumah', img: 'https://placehold.co/800x600/1A1A1A/C9A84C?text=Scandinavian+Bedroom' },
-  { id: 5, title: 'Modern Executive Suite', category: 'Kantor', img: 'https://placehold.co/800x600/1A1A1A/C9A84C?text=Executive+Suite' },
-  { id: 6, title: 'Custom Walk-in Closet', category: 'Furniture', img: 'https://placehold.co/800x600/1A1A1A/C9A84C?text=Walk-in+Closet' },
+  { id: 1, slug: 'modern-living-room', title: 'Modern Living Room', category: 'Rumah', img: 'https://images.unsplash.com/photo-1618221195710-dd6b41faeaa6?auto=format&fit=crop&q=80&w=800', desc: 'Desain ruang tamu modern dengan sentuhan minimalis dan pencahayaan alami yang maksimal.' },
+  { id: 2, slug: 'minimalist-office', title: 'Minimalist Office', category: 'Kantor', img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800', desc: 'Ruang kantor yang efisien dan tenang, dirancang untuk produktivitas tinggi.' },
+  { id: 3, slug: 'luxury-kitchen-set', title: 'Luxury Kitchen Set', category: 'Furniture', img: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=800', desc: 'Kitchen set mewah dengan material marble dan finishing high-gloss.' },
+  { id: 4, slug: 'scandinavian-bedroom', title: 'Scandinavian Bedroom', category: 'Rumah', img: 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&q=80&w=800', desc: 'Kamar tidur bergaya Scandinavian yang hangat dan nyaman.' },
+  { id: 5, slug: 'modern-executive-suite', title: 'Modern Executive Suite', category: 'Kantor', img: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=800', desc: 'Suite eksekutif modern dengan pemandangan kota dan desain prestisius.' },
+  { id: 6, slug: 'custom-walk-in-closet', title: 'Custom Walk-in Closet', category: 'Furniture', img: 'https://images.unsplash.com/photo-1558997519-53bb890929a3?auto=format&fit=crop&q=80&w=800', desc: 'Walk-in closet fungsional dengan sistem organisasi pakaian yang cerdas.' },
 ];
 
 const STEPS = [
@@ -124,6 +132,9 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const location = useLocation();
+  const navigate = useNavigate();
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
@@ -131,49 +142,118 @@ const Navbar = () => {
   }, []);
 
   const navLinks = [
-    { name: 'Tentang', href: '#about' },
-    { name: 'Layanan', href: '#services' },
-    { name: 'Portofolio', href: '#portfolio' },
-    { name: 'Proses', href: '#process' },
-    { name: 'Faq', href: '#faq' },
+    { name: 'Tentang', href: '/#about' },
+    { name: 'Layanan', href: '/#services' },
+    { name: 'Proses', href: '/#process' },
+    { name: 'Faq', href: '/#faq' },
   ];
 
+  const portfolioCategories = [
+    { name: 'Semua Project', href: '/portfolio' },
+    { name: 'Rumah', href: '/portfolio/rumah' },
+    { name: 'Kantor', href: '/portfolio/kantor' },
+    { name: 'Furniture', href: '/portfolio/furniture' },
+  ];
+
+  const [portfolioOpen, setPortfolioOpen] = useState(false);
+
+  const handleNavClick = (href: string) => {
+    if (href.startsWith('/#')) {
+      const id = href.replace('/#', '');
+      if (location.pathname === '/') {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
+        navigate(href);
+      }
+    } else {
+      navigate(href);
+    }
+    setMobileMenuOpen(false);
+  };
+
   return (
-    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-md py-3 border-b border-gold/10' : 'bg-transparent py-5'}`}>
+    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled || location.pathname !== '/' ? 'bg-white shadow-md py-3 border-b border-gold/10' : 'bg-transparent py-5'}`}>
       <div className="max-w-7xl mx-auto px-4 md:px-8 flex justify-between items-center">
-        <div className="flex items-center gap-3 group cursor-pointer">
-          <div className="w-10 h-10 bg-charcoal flex items-center justify-center rounded-sm transition-transform group-hover:scale-105">
-            <span className="text-gold font-display text-2xl font-bold">B</span>
+        <Link to="/" className="flex items-center gap-3 group cursor-pointer">
+          <div className="w-12 h-12 flex items-center justify-center transition-transform group-hover:scale-105">
+            <img src="/input_file_0.png" alt="Bintang Cahaya Interior Logo" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
           </div>
           <div className="flex flex-col">
-            <span className={`text-lg font-display font-bold leading-none tracking-tight ${scrolled ? 'text-charcoal' : 'text-white'}`}>
+            <span className={`text-lg font-display font-bold leading-none tracking-tight ${scrolled || location.pathname !== '/' ? 'text-charcoal' : 'text-white'}`}>
               BINTANG CAHAYA
             </span>
             <span className="text-[10px] tracking-[0.25em] text-gold font-bold uppercase">
               INTERIOR & FURNITURE
             </span>
           </div>
-        </div>
+        </Link>
 
         {/* Desktop Menu */}
         <div className="hidden lg:flex items-center gap-10">
-          {navLinks.map((link) => (
-            <a 
+          {navLinks.slice(0, 2).map((link) => (
+            <button 
               key={link.name} 
-              href={link.href} 
-              className={`text-[11px] font-bold uppercase tracking-widest hover:text-gold transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[1px] after:bg-gold after:transition-all hover:after:w-full ${scrolled ? 'text-charcoal' : 'text-white'}`}
+              onClick={() => handleNavClick(link.href)}
+              className={`text-[11px] font-bold uppercase tracking-widest hover:text-gold transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[1px] after:bg-gold after:transition-all hover:after:w-full ${scrolled || location.pathname !== '/' ? 'text-charcoal' : 'text-white'}`}
             >
               {link.name}
-            </a>
+            </button>
           ))}
-          <a href="#contact" className="bg-gold text-white px-7 py-2.5 rounded-full text-[11px] font-bold hover:bg-gold-dark transition-colors shadow-lg">
+
+          {/* Portfolio Dropdown */}
+          <div 
+            className="relative group"
+            onMouseEnter={() => setPortfolioOpen(true)}
+            onMouseLeave={() => setPortfolioOpen(false)}
+          >
+            <button 
+              className={`flex items-center gap-1 text-[11px] font-bold uppercase tracking-widest hover:text-gold transition-colors pb-1 border-b-2 ${location.pathname.includes('/portfolio') ? 'text-gold border-gold' : 'border-transparent'} ${scrolled || location.pathname !== '/' ? 'text-charcoal' : 'text-white'}`}
+            >
+              Portofolio <ChevronDown size={14} className={`transition-transform ${portfolioOpen ? 'rotate-180' : ''}`} />
+            </button>
+            
+            <AnimatePresence>
+              {portfolioOpen && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="absolute top-full left-0 mt-2 w-48 bg-white shadow-xl rounded-lg py-4 border border-gray-100"
+                >
+                  {portfolioCategories.map((cat) => (
+                    <Link
+                      key={cat.name}
+                      to={cat.href}
+                      className="block px-6 py-2.5 text-[11px] font-bold text-gray-500 hover:text-gold hover:bg-gray-50 transition-colors uppercase tracking-widest"
+                    >
+                      {cat.name}
+                    </Link>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {navLinks.slice(2).map((link) => (
+            <button 
+              key={link.name} 
+              onClick={() => handleNavClick(link.href)}
+              className={`text-[11px] font-bold uppercase tracking-widest hover:text-gold transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[1px] after:bg-gold after:transition-all hover:after:w-full ${scrolled || location.pathname !== '/' ? 'text-charcoal' : 'text-white'}`}
+            >
+              {link.name}
+            </button>
+          ))}
+          <a href="#contact" onClick={(e) => { e.preventDefault(); handleNavClick('#contact'); }} className="bg-gold text-white px-7 py-2.5 rounded-full text-[11px] font-bold hover:bg-gold-dark transition-colors shadow-lg">
             KONSULTASI GRATIS
           </a>
         </div>
 
         {/* Mobile Toggle */}
         <button className="lg:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          {mobileMenuOpen ? <X className={scrolled ? 'text-charcoal' : 'text-white'} /> : <Menu className={scrolled ? 'text-charcoal' : 'text-white'} />}
+          {mobileMenuOpen ? <X className={scrolled || location.pathname !== '/' ? 'text-charcoal' : 'text-white'} /> : <Menu className={scrolled || location.pathname !== '/' ? 'text-charcoal' : 'text-white'} />}
         </button>
       </div>
 
@@ -186,18 +266,57 @@ const Navbar = () => {
             exit={{ opacity: 0, height: 0 }}
             className="lg:hidden bg-white border-t border-gray-100 overflow-hidden"
           >
-            <div className="flex flex-col p-4 gap-4">
-              {navLinks.map((link) => (
-                <a 
+            <div className="flex flex-col p-4 gap-2">
+              {navLinks.slice(0, 2).map((link) => (
+                <button 
                   key={link.name} 
-                  href={link.href} 
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-sm font-medium text-charcoal uppercase tracking-wider"
+                  onClick={() => handleNavClick(link.href)}
+                  className="text-left py-2 text-sm font-bold text-charcoal uppercase tracking-wider border-b border-gray-50"
                 >
                   {link.name}
-                </a>
+                </button>
               ))}
-              <a href="#contact" className="gold-gradient text-white px-6 py-3 rounded-xl text-center font-semibold" onClick={() => setMobileMenuOpen(false)}>
+              
+              {/* Mobile Portfolio Submenu */}
+              <div className="py-2 border-b border-gray-50">
+                <button 
+                  onClick={() => setPortfolioOpen(!portfolioOpen)}
+                  className="w-full flex justify-between items-center text-sm font-bold text-gold uppercase tracking-wider"
+                >
+                  Portofolio {portfolioOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
+                <AnimatePresence>
+                  {portfolioOpen && (
+                    <motion.div 
+                      initial={{ height: 0 }}
+                      animate={{ height: 'auto' }}
+                      className="overflow-hidden pl-4 flex flex-col gap-3 pt-4 pb-2"
+                    >
+                      {portfolioCategories.map((cat) => (
+                        <Link
+                          key={cat.name}
+                          to={cat.href}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-gold"
+                        >
+                          {cat.name}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {navLinks.slice(2).map((link) => (
+                <button 
+                  key={link.name} 
+                  onClick={() => handleNavClick(link.href)}
+                  className="text-left py-2 text-sm font-bold text-charcoal uppercase tracking-wider border-b border-gray-50"
+                >
+                  {link.name}
+                </button>
+              ))}
+              <a href="#contact" className="gold-gradient text-white px-6 py-4 rounded-xl text-center font-bold text-xs uppercase mt-4" onClick={() => handleNavClick('#contact')}>
                 Konsultasi Gratis
               </a>
             </div>
@@ -208,8 +327,16 @@ const Navbar = () => {
   );
 };
 
-export default function App() {
-  const [activeTab, setActiveTab] = useState('Semua');
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
+
+const HomePage = () => {
+  const [activeTab, setActiveTab ] = useState('Semua');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const filteredPortfolio = activeTab === 'Semua' 
@@ -217,9 +344,7 @@ export default function App() {
     : PORTFOLIO.filter(item => item.category === activeTab);
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-
+    <>
       {/* --- HERO SECTION --- */}
       <section className="relative h-screen flex items-center overflow-hidden bg-charcoal">
         <div className="absolute inset-0 z-0 opacity-40">
@@ -439,7 +564,7 @@ export default function App() {
                   <div className="absolute inset-0 bg-charcoal/90 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-center p-8 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
                     <span className="text-gold text-[10px] font-bold uppercase tracking-widest mb-3">{item.category}</span>
                     <h4 className="text-white text-2xl font-display font-medium mb-6">{item.title}</h4>
-                    <button className="bg-gold text-white px-8 py-2.5 rounded-sm text-[10px] font-bold tracking-widest uppercase hover:bg-gold-dark transition-colors">Detail Proyek</button>
+                    <Link to={`/project/${item.slug}`} className="bg-gold text-white px-8 py-2.5 rounded-sm text-[10px] font-bold tracking-widest uppercase hover:bg-gold-dark transition-colors">Detail Proyek</Link>
                   </div>
                 </motion.div>
               ))}
@@ -649,30 +774,213 @@ export default function App() {
           </motion.div>
         </div>
       </section>
+      <Footer />
+    </>
+  );
+};
 
-      <footer className="bg-white border-t border-gray-100 py-12">
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] text-center md:text-left">
-              &copy; 2026 Bintang Cahaya Interior. All Rights Reserved.
+const Footer = () => (
+  <footer className="bg-white border-t border-gray-100 py-12">
+    <div className="max-w-7xl mx-auto px-4 md:px-8">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] text-center md:text-left">
+          &copy; 2026 Bintang Cahaya Interior. All Rights Reserved.
+        </div>
+        
+        <div className="flex items-center gap-8">
+          <div className="flex gap-4">
+            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-gold hover:text-white transition-all cursor-pointer">
+              <Instagram size={14} />
             </div>
+            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-gold hover:text-white transition-all cursor-pointer">
+              <Facebook size={14} />
+            </div>
+          </div>
+          <div className="text-[10px] font-bold text-charcoal uppercase tracking-[0.2em] border-l border-gray-200 pl-8 hidden md:block">
+            JAKARTA | SEMARANG | BALI
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+);
+
+const PortfolioPage = () => {
+  const { category } = useParams();
+  const navigate = useNavigate();
+  
+  const displayCategory = category ? category.charAt(0).toUpperCase() + category.slice(1) : 'Semua';
+  const filteredPortfolio = !category || category === 'semua'
+    ? PORTFOLIO 
+    : PORTFOLIO.filter(item => item.category.toLowerCase() === category.toLowerCase());
+
+  const categories = ['Semua', 'Rumah', 'Kantor', 'Furniture'];
+
+  return (
+    <div className="pt-32 pb-24 min-h-screen bg-white flex flex-col">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 flex-grow">
+        <div className="mb-16">
+          <SectionHeading subtitle="Karya Kami" title={`Project ${displayCategory}`} centered={false} />
+          
+          {/* Category Tabs */}
+          <div className="flex flex-wrap gap-6 mt-8 border-b border-gray-100">
+            {categories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => navigate(cat === 'Semua' ? '/portfolio' : `/portfolio/${cat.toLowerCase()}`)}
+                className={`text-[11px] font-bold uppercase tracking-[0.2em] transition-all relative pb-4 -mb-[1px] ${displayCategory === cat ? 'text-gold after:content-[\'\'] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gold' : 'text-gray-400 hover:text-charcoal'}`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Grid */}
+        <motion.div 
+          layout
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+        >
+          <AnimatePresence mode="popLayout">
+            {filteredPortfolio.map((item) => (
+              <motion.div
+                key={item.id}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.4 }}
+                className="relative group aspect-[4/5] rounded-xl overflow-hidden shadow-premium"
+              >
+                <img src={item.img} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt={item.title} />
+                <div className="absolute inset-0 bg-charcoal/90 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-center p-8 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                  <span className="text-gold text-[10px] font-bold uppercase tracking-widest mb-3">{item.category}</span>
+                  <h4 className="text-white text-2xl font-display font-medium mb-6">{item.title}</h4>
+                  <Link to={`/project/${item.slug}`} className="bg-gold text-white px-8 py-2.5 rounded-sm text-[10px] font-bold tracking-widest uppercase hover:bg-gold-dark transition-colors">Detail Proyek</Link>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
+
+        {filteredPortfolio.length === 0 && (
+          <div className="text-center py-24">
+            <p className="text-gray-400 font-display italic">Belum ada proyek di kategori ini.</p>
+          </div>
+        )}
+      </div>
+      <Footer />
+    </div>
+  );
+};
+
+const ProjectDetailPage = () => {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+  const project = PORTFOLIO.find(p => p.slug === slug);
+
+  if (!project) {
+    return (
+      <div className="pt-32 pb-24 min-h-screen flex flex-col items-center justify-center bg-white">
+        <h2 className="text-2xl font-display font-bold text-charcoal mb-4">Proyek tidak ditemukan</h2>
+        <button onClick={() => navigate('/portfolio')} className="text-gold font-bold uppercase tracking-widest text-sm border-b border-gold pb-1">Kembali ke Portofolio</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="pt-32 min-h-screen bg-white">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 mb-24">
+        <div className="mb-8">
+          <Link to="/portfolio" className="text-gold text-xs font-bold uppercase tracking-widest flex items-center gap-2 mb-6 hover:gap-4 transition-all">
+            <ArrowRight size={14} className="rotate-180" /> Kembali ke Portofolio
+          </Link>
+          <span className="text-gold text-[10px] font-bold uppercase tracking-[0.3em] block mb-2">{project.category}</span>
+          <h1 className="text-4xl md:text-6xl font-display font-medium text-charcoal leading-tight">{project.title}</h1>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-12">
+          <div className="lg:col-span-2">
+            <motion.div 
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               className="rounded-3xl overflow-hidden shadow-premium mb-12"
+            >
+              <img src={project.img} className="w-full h-auto aspect-video object-cover" alt={project.title} />
+            </motion.div>
             
-            <div className="flex items-center gap-8">
-              <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-gold hover:text-white transition-all cursor-pointer">
-                  <Instagram size={14} />
+            <div className="prose prose-lg max-w-none">
+              <h3 className="text-2xl font-display font-bold text-charcoal mb-6">Tentang Proyek</h3>
+              <p className="text-gray-500 leading-relaxed mb-8">{project.desc}</p>
+              <p className="text-gray-500 leading-relaxed mb-8">
+                Proyek ini merupakan salah satu pencapaian terbaik kami dalam mengintegrasikan elemen fungsional dengan estetika modern. Kami menggunakan material berkualitas tinggi dan teknik pengerjaan yang mendetail untuk memastikan setiap sudut ruangan memiliki nilai seni dan kegunaan yang maksimal.
+              </p>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-10 border-y border-gray-100 my-12">
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Lokasi</span>
+                  <span className="text-sm font-bold text-charcoal">Jakarta Selatan</span>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-gold hover:text-white transition-all cursor-pointer">
-                  <Facebook size={14} />
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Durasi</span>
+                  <span className="text-sm font-bold text-charcoal">4-6 Minggu</span>
                 </div>
-              </div>
-              <div className="text-[10px] font-bold text-charcoal uppercase tracking-[0.2em] border-l border-gray-200 pl-8 hidden md:block">
-                JAKARTA | SEMARANG | BALI
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Gaya</span>
+                  <span className="text-sm font-bold text-charcoal">Modern Minimalist</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Layanan</span>
+                  <span className="text-sm font-bold text-charcoal">Full Interior Design</span>
+                </div>
               </div>
             </div>
           </div>
+
+          <aside className="space-y-8">
+            <div className="bg-charcoal p-10 rounded-3xl text-white">
+              <h4 className="text-xl font-display font-bold mb-4">Tertarik dengan konsep ini?</h4>
+              <p className="text-gray-400 text-sm mb-8 leading-relaxed">Konsultasikan kebutuhan interior Anda sekarang untuk mendapatkan penawaran spesial.</p>
+              <a href="/#contact" className="gold-gradient w-full py-4 rounded-xl text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl">
+                 Konsultasi Sekarang
+              </a>
+            </div>
+
+            <div className="p-8 rounded-3xl border border-gray-100 bg-gray-50/50">
+              <h4 className="text-sm font-bold text-charcoal uppercase tracking-widest mb-6">Proyek Lainnya</h4>
+              <div className="space-y-6">
+                 {PORTFOLIO.filter(p => p.slug !== slug).slice(0, 3).map(p => (
+                   <Link key={p.id} to={`/project/${p.slug}`} className="flex gap-4 group">
+                     <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0">
+                       <img src={p.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform" alt={p.title} />
+                     </div>
+                     <div className="flex flex-col justify-center">
+                       <span className="text-[8px] font-bold text-gold uppercase tracking-widest mb-1">{p.category}</span>
+                       <h5 className="text-xs font-bold text-charcoal group-hover:text-gold transition-colors">{p.title}</h5>
+                     </div>
+                   </Link>
+                 ))}
+              </div>
+            </div>
+          </aside>
         </div>
-      </footer>
+      </div>
+      <Footer />
+    </div>
+  );
+};
+
+export default function App() {
+  return (
+    <div className="min-h-screen">
+      <ScrollToTop />
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/portfolio" element={<PortfolioPage />} />
+        <Route path="/portfolio/:category" element={<PortfolioPage />} />
+        <Route path="/project/:slug" element={<ProjectDetailPage />} />
+      </Routes>
 
       {/* WhatsApp Fixed Button */}
       <motion.div
